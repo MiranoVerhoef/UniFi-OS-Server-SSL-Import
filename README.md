@@ -1,4 +1,4 @@
-# UniFi SSL Import Script
+# UniFi OS Server SSL Import Script
 
 A Bash script to automatically import and update Let's Encrypt SSL certificates for your UniFi OS server (`uosserver`). The script stops the UniFi controller, replaces its TLS key and certificate files with the latest certs from Let's Encrypt, sets correct permissions, and then restarts the controller — ensuring your UniFi server always has a valid SSL certificate.
 
