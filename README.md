@@ -51,11 +51,7 @@ chmod 0400 /root/.secrets/cloudflare.ini
 Replace `your.domain.com` with your actual domain:
 
 ```bash
-certbot certonly \
-  --dns-cloudflare \
-  --dns-cloudflare-credentials /root/.secrets/cloudflare.ini \
-  -d your.domain.com \
-  --preferred-challenges dns-01
+certbot certonly --key-type rsa --rsa-key-size 4096 --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.ini -d your.domain.com --preferred-challenges dns-01
 ```
 
 ---
