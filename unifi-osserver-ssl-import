@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
 ############################################################################################
-#Fill in domain name here:
+################################### Configurable Settings: #################################
+#Domain Name:
 UNIFI_HOSTNAME="unifi.example.com"
+#Force Mode:
+FORCE=false
+#Verbose Mode:
+VERBOSE=false
+#Logfile location:
+LOGFILE="/var/log/unifi-os-server-ssl-import.log"
 ############################################################################################
 
 set -euo pipefail
-
-LOGFILE="/var/log/unifi-os-server-ssl-import.log"
-FORCE=false
-VERBOSE=false
 
 # Parse arguments
 for arg in "$@"; do
