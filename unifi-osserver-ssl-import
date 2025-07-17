@@ -7,7 +7,7 @@ UNIFI_HOSTNAME="unifi.example.com"
 
 set -euo pipefail
 
-LOGFILE="/var/log/unifi-ssl-import.log"
+LOGFILE="/var/log/unifi-os-server-ssl-import.log"
 FORCE=false
 VERBOSE=false
 
