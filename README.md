@@ -61,7 +61,7 @@ certbot certonly --key-type rsa --rsa-key-size 4096 --dns-cloudflare --dns-cloud
 Download the script:
 
 ```bash
-wget https://raw.githubusercontent.com/MiranoVerhoef/UniFi-SSL-Import/refs/heads/main/unifi-osserver-ssl-import -O /usr/local/bin/unifi-osserver-ssl-import.sh
+wget https://raw.githubusercontent.com/MiranoVerhoef/UniFi-OS-Server-SSL-Import/refs/heads/main/unifi-osserver-ssl-import -O /usr/local/bin/unifi-osserver-ssl-import.sh
 ```
 
 Make it executable:
