@@ -19,7 +19,7 @@ A Bash script to automatically import and update Let's Encrypt SSL certificates 
 
 ### Install Let's Encrypt and Cloudflare DNS plugin
 
-## Make sure you run as with privileges
+#### Make sure you run as with privileges
 
 ```bash
 apt update
