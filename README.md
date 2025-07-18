@@ -100,6 +100,12 @@ Optional flags:
 
 ---
 
+
+## To check logging:
+```
+tail -f /home/uosserver/.local/share/containers/storage/volumes/uosserver_data/_data/unifi-core/logs/http.log
+```
+
 ## Example Crontab for Automation
 
 Open crontab:
