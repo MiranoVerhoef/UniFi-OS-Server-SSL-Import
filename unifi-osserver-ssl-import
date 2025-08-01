@@ -68,7 +68,7 @@ done
 echo "✅ All required files found."
 
 CURRENT_SUM=$(cat "${CERT_DIR}/privkey.pem" "${CERT_DIR}/cert.pem" "${CERT_DIR}/chain.pem" | md5sum | awk '{print $1}')
-echo " Current cert bundle MD5: $CURRENT_SUM"
+echo "Current cert bundle MD5: $CURRENT_SUM"
 
 if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
     OLD_SUM=$(<"${COMBINED_MD5_FILE}")
@@ -122,10 +122,10 @@ echo "✅"
 
 # Save new checksum
 echo "$CURRENT_SUM" > "${COMBINED_MD5_FILE}"
-echo " Updated cert checksum saved."
+echo "Updated cert checksum saved."
 
 # Show cert details
-echo " Installed cert details:"
+echo "Installed cert details:"
 openssl x509 -in "${DEST_CERT}" -noout -subject -issuer -serial -enddate
 
 # Restart controller
