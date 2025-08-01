@@ -20,7 +20,7 @@ for arg in "$@"; do
         --force) FORCE=true ;;
         --verbose) VERBOSE=true ;;
         *)
-            echo "❌ Unknown argument: $arg"
+            echo "Unknown argument: $arg"
             echo "Usage: $0 [--force] [--verbose]"
             exit 1
             ;;
@@ -31,7 +31,7 @@ done
 if [[ "$VERBOSE" == false ]]; then
     exec > >(tee -a "$LOGFILE") 2>&1
 else
-    echo "📣 Verbose mode enabled."
+    echo "Verbose mode enabled."
 fi
 
 # Function to run commands cleanly
@@ -80,10 +80,10 @@ if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
     fi
 fi
 
-echo "🔁 Certificate changed or --force used. Proceeding with update."
+echo "Certificate changed or --force used. Proceeding with update."
 
 # Stop UniFi controller (cleanly)
-echo -n "🛑 Stopping UniFi Controller... "
+echo -n "Stopping UniFi Controller... "
 run_command uosserver stop
 echo "done."
 
@@ -115,7 +115,7 @@ fi
 echo "✅"
 
 # Set permissions
-echo -n "🔐 Setting permissions... "
+echo -n "Setting permissions... "
 chmod 600 "${DEST_KEY}" "${DEST_CERT}"
 chown uosserver:uosserver "${DEST_KEY}" "${DEST_CERT}" 2>/dev/null || echo "⚠️ chown failed"
 echo "✅"
@@ -129,7 +129,7 @@ echo " Installed cert details:"
 openssl x509 -in "${DEST_CERT}" -noout -subject -issuer -serial -enddate
 
 # Restart controller
-echo -n "🚀 Starting UniFi Controller... "
+echo -n "Starting UniFi Controller... "
 run_command uosserver start
 echo "done."
 
