@@ -36,6 +36,7 @@ nano /root/.secrets/cloudflare.ini
 ```
 
 Add the following content (replace with your actual token):
+**Make sure the Cloudflare token includes DNS Rights**
 
 ```
 dns_cloudflare_api_token = your_token_here
