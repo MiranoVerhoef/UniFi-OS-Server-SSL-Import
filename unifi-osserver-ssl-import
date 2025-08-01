@@ -44,8 +44,8 @@ run_command() {
 }
 
 echo "=============================="
-echo "🔐 UniFi SSL Import Script"
-echo "🕒 Run at: $(date)"
+echo " UniFi SSL Import Script"
+echo " Run at: $(date)"
 echo "=============================="
 
 if [[ "$FORCE" == true ]]; then
@@ -58,7 +58,7 @@ DEST_KEY="/home/uosserver/.local/share/containers/storage/volumes/uosserver_data
 DEST_CERT="/home/uosserver/.local/share/containers/storage/volumes/uosserver_data/_data/unifi-core/config/unifi-core.crt"
 COMBINED_MD5_FILE="${CERT_DIR}/cert_bundle.md5"
 
-echo "📂 Checking required certificate files in ${CERT_DIR}..."
+echo " Checking required certificate files in ${CERT_DIR}..."
 for file in cert.pem chain.pem privkey.pem; do
     if [[ ! -f "${CERT_DIR}/${file}" ]]; then
         echo "❌ Missing ${file}. Aborting."
@@ -68,7 +68,7 @@ done
 echo "✅ All required files found."
 
 CURRENT_SUM=$(cat "${CERT_DIR}/privkey.pem" "${CERT_DIR}/cert.pem" "${CERT_DIR}/chain.pem" | md5sum | awk '{print $1}')
-echo "🔍 Current cert bundle MD5: $CURRENT_SUM"
+echo " Current cert bundle MD5: $CURRENT_SUM"
 
 if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
     OLD_SUM=$(<"${COMBINED_MD5_FILE}")
@@ -89,24 +89,24 @@ echo "done."
 
 # Backup existing files
 if [[ -f "${DEST_KEY}" ]]; then
-    echo -n "📦 Backing up key... "
+    echo -n " Backing up key... "
     run_command cp -v "${DEST_KEY}" "${DEST_KEY}.bak"
     echo "✅"
 fi
 
 if [[ -f "${DEST_CERT}" ]]; then
-    echo -n "📦 Backing up cert... "
+    echo -n " Backing up cert... "
     run_command cp -v "${DEST_CERT}" "${DEST_CERT}.bak"
     echo "✅"
 fi
 
 # Copy key
-echo -n "📥 Installing new key... "
+echo -n " Installing new key... "
 run_command cp -v "${CERT_DIR}/privkey.pem" "${DEST_KEY}"
 echo "✅"
 
 # Combine certs
-echo -n "🧬 Assembling new certificate... "
+echo -n " Assembling new certificate... "
 if [[ "$VERBOSE" == true ]]; then
     cat "${CERT_DIR}/cert.pem" "${CERT_DIR}/chain.pem" > "${DEST_CERT}"
 else
@@ -122,10 +122,10 @@ echo "✅"
 
 # Save new checksum
 echo "$CURRENT_SUM" > "${COMBINED_MD5_FILE}"
-echo "💾 Updated cert checksum saved."
+echo " Updated cert checksum saved."
 
 # Show cert details
-echo "📋 Installed cert details:"
+echo " Installed cert details:"
 openssl x509 -in "${DEST_CERT}" -noout -subject -issuer -serial -enddate
 
 # Restart controller
