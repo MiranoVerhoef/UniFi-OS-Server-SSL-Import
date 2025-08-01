@@ -72,7 +72,7 @@ echo "Current cert bundle MD5: $CURRENT_SUM"
 
 if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
     OLD_SUM=$(<"${COMBINED_MD5_FILE}")
-    echo "📑 Previous cert bundle MD5: $OLD_SUM"
+    echo "Previous cert bundle MD5: $OLD_SUM"
 
     if [[ "$CURRENT_SUM" == "$OLD_SUM" ]]; then
         echo "✅ Certificate unchanged. No update necessary."
