@@ -117,7 +117,7 @@ echo "✅"
 # Set permissions
 echo -n "Setting permissions... "
 chmod 600 "${DEST_KEY}" "${DEST_CERT}"
-chown uosserver:uosserver "${DEST_KEY}" "${DEST_CERT}" 2>/dev/null || echo "⚠️ chown failed"
+chown uosserver:uosserver "${DEST_KEY}" "${DEST_CERT}" 2>/dev/null || echo "chown failed"
 echo "✅"
 
 # Save new checksum
