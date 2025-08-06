@@ -4,6 +4,17 @@
 ################################### Configurable Settings: #################################
 #Domain Name:
 UNIFI_HOSTNAME="unifi.example.com"
+
+#Certificate Provider: "certbot" or "acme"
+CERT_PROVIDER="certbot"
+
+#DNS Provider (for acme.sh): "cloudflare", "hetzner", etc.
+DNS_PROVIDER="cloudflare"
+
+#Configuration paths:
+ACME_HOME="/root/.acme.sh"
+CERTBOT_CONFIG_DIR="/etc/letsencrypt"
+
 #Force Mode:
 FORCE=false
 #Verbose Mode:
@@ -19,9 +30,11 @@ for arg in "$@"; do
     case $arg in
         --force) FORCE=true ;;
         --verbose) VERBOSE=true ;;
+        --provider=*) CERT_PROVIDER="${arg#*=}" ;;
+        --dns=*) DNS_PROVIDER="${arg#*=}" ;;
         *)
             echo "Unknown argument: $arg"
-            echo "Usage: $0 [--force] [--verbose]"
+            echo "Usage: $0 [--force] [--verbose] [--provider=certbot|acme] [--dns=cloudflare|hetzner]"
             exit 1
             ;;
     esac
@@ -43,31 +56,132 @@ run_command() {
     fi
 }
 
+# Function to get certificate directory based on provider
+get_cert_dir() {
+    case "$CERT_PROVIDER" in
+        "certbot")
+            echo "${CERTBOT_CONFIG_DIR}/live/${UNIFI_HOSTNAME}"
+            ;;
+        "acme")
+            # acme.sh with RSA certificates (UniFi OS Server only supports RSA)
+            local rsa_dir="${ACME_HOME}/${UNIFI_HOSTNAME}"
+            
+            if [[ -d "$rsa_dir" ]]; then
+                echo "$rsa_dir"
+            else
+                echo "❌ No acme.sh certificate directory found for ${UNIFI_HOSTNAME}" >&2
+                echo "   Expected directory: $rsa_dir" >&2
+                echo "   Make sure to use RSA certificates with acme.sh (e.g., --keylength 4096)" >&2
+                exit 1
+            fi
+            ;;
+        *)
+            echo "❌ Unknown certificate provider: $CERT_PROVIDER" >&2
+            exit 1
+            ;;
+    esac
+}
+
+# Function to get certificate file paths based on provider
+get_cert_files() {
+    local cert_dir="$1"
+    case "$CERT_PROVIDER" in
+        "certbot")
+            CERT_FILE="${cert_dir}/cert.pem"
+            CHAIN_FILE="${cert_dir}/chain.pem"
+            KEY_FILE="${cert_dir}/privkey.pem"
+            ;;
+        "acme")
+            CERT_FILE="${cert_dir}/fullchain.cer"
+            CHAIN_FILE="${cert_dir}/ca.cer"
+            
+            # Check for different key file naming patterns in acme.sh
+            if [[ -f "${cert_dir}/${UNIFI_HOSTNAME}.key" ]]; then
+                KEY_FILE="${cert_dir}/${UNIFI_HOSTNAME}.key"
+            elif [[ -f "${cert_dir}/private.key" ]]; then
+                KEY_FILE="${cert_dir}/private.key"
+            else
+                echo "❌ No private key file found in ${cert_dir}" >&2
+                echo "   Searched for: ${UNIFI_HOSTNAME}.key and private.key" >&2
+                exit 1
+            fi
+            ;;
+    esac
+}
+
+# Function to validate provider configuration
+validate_provider_config() {
+    case "$CERT_PROVIDER" in
+        "certbot")
+            if [[ ! -d "$CERTBOT_CONFIG_DIR" ]]; then
+                echo "❌ Certbot configuration directory not found: $CERTBOT_CONFIG_DIR"
+                exit 1
+            fi
+            ;;
+        "acme")
+            if [[ ! -d "$ACME_HOME" ]]; then
+                echo "❌ acme.sh home directory not found: $ACME_HOME"
+                echo "   Please install acme.sh first: curl https://get.acme.sh | sh"
+                exit 1
+            fi
+            ;;
+        *)
+            echo "❌ Unsupported certificate provider: $CERT_PROVIDER"
+            echo "   Supported providers: certbot, acme"
+            exit 1
+            ;;
+    esac
+}
+
 echo "=============================="
 echo " UniFi SSL Import Script"
 echo " Run at: $(date)"
+echo " Provider: $CERT_PROVIDER"
+if [[ "$CERT_PROVIDER" == "acme" ]]; then
+    echo " DNS Provider: $DNS_PROVIDER"
+fi
 echo "=============================="
 
 if [[ "$FORCE" == true ]]; then
     echo "⚠️  FORCE mode enabled: Will replace certificate even if unchanged."
 fi
 
-LE_LIVE_DIR="/etc/letsencrypt/live"
-CERT_DIR="${LE_LIVE_DIR}/${UNIFI_HOSTNAME}"
+# Validate provider configuration
+validate_provider_config
+
+# Get certificate directory and files
+CERT_DIR=$(get_cert_dir)
+get_cert_files "$CERT_DIR"
+
 DEST_KEY="/home/uosserver/.local/share/containers/storage/volumes/uosserver_data/_data/unifi-core/config/unifi-core.key"
 DEST_CERT="/home/uosserver/.local/share/containers/storage/volumes/uosserver_data/_data/unifi-core/config/unifi-core.crt"
 COMBINED_MD5_FILE="${CERT_DIR}/cert_bundle.md5"
 
-echo " Checking required certificate files in ${CERT_DIR}..."
-for file in cert.pem chain.pem privkey.pem; do
-    if [[ ! -f "${CERT_DIR}/${file}" ]]; then
-        echo "❌ Missing ${file}. Aborting."
+echo "Checking required certificate files in ${CERT_DIR}..."
+if [[ ! -f "$KEY_FILE" ]]; then
+    echo "❌ Missing private key file: $KEY_FILE. Aborting."
+    exit 1
+fi
+
+if [[ "$CERT_PROVIDER" == "certbot" ]]; then
+    if [[ ! -f "$CERT_FILE" || ! -f "$CHAIN_FILE" ]]; then
+        echo "❌ Missing certificate files. Aborting."
         exit 1
     fi
-done
+else
+    if [[ ! -f "$CERT_FILE" ]]; then
+        echo "❌ Missing certificate file: $CERT_FILE. Aborting."
+        exit 1
+    fi
+fi
 echo "✅ All required files found."
 
-CURRENT_SUM=$(cat "${CERT_DIR}/privkey.pem" "${CERT_DIR}/cert.pem" "${CERT_DIR}/chain.pem" | md5sum | awk '{print $1}')
+# Calculate checksum based on provider
+if [[ "$CERT_PROVIDER" == "certbot" ]]; then
+    CURRENT_SUM=$(cat "$KEY_FILE" "$CERT_FILE" "$CHAIN_FILE" | md5sum | awk '{print $1}')
+else
+    CURRENT_SUM=$(cat "$KEY_FILE" "$CERT_FILE" | md5sum | awk '{print $1}')
+fi
 echo "Current cert bundle MD5: $CURRENT_SUM"
 
 if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
@@ -101,16 +215,22 @@ if [[ -f "${DEST_CERT}" ]]; then
 fi
 
 # Copy key
-echo -n " Installing new key... "
-run_command cp -v "${CERT_DIR}/privkey.pem" "${DEST_KEY}"
+echo -n "Installing new key... "
+run_command cp -v "$KEY_FILE" "$DEST_KEY"
 echo "✅"
 
-# Combine certs
-echo -n " Assembling new certificate... "
-if [[ "$VERBOSE" == true ]]; then
-    cat "${CERT_DIR}/cert.pem" "${CERT_DIR}/chain.pem" > "${DEST_CERT}"
+# Handle certificate installation based on provider
+echo -n "Installing new certificate... "
+if [[ "$CERT_PROVIDER" == "certbot" ]]; then
+    # Combine cert and chain for certbot
+    if [[ "$VERBOSE" == true ]]; then
+        cat "$CERT_FILE" "$CHAIN_FILE" > "$DEST_CERT"
+    else
+        cat "$CERT_FILE" "$CHAIN_FILE" > "$DEST_CERT" 2>/dev/null
+    fi
 else
-    cat "${CERT_DIR}/cert.pem" "${CERT_DIR}/chain.pem" > "${DEST_CERT}" 2>/dev/null
+    # For acme.sh, fullchain.cer already contains both cert and chain
+    run_command cp -v "$CERT_FILE" "$DEST_CERT"
 fi
 echo "✅"
 
