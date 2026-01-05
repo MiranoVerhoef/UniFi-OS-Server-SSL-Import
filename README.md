@@ -163,10 +163,10 @@ You can override the configuration using command line arguments:
 /usr/local/bin/unifi-osserver-ssl-import.sh --provider=certbot
 
 # Use acme.sh with Hetzner DNS
-/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=hetzner
+/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=hetzner --server letsencrypt
 
 # Use acme.sh with Cloudflare DNS
-/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=cloudflare
+/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=cloudflare --server letsencrypt
 
 # Force certificate reinstallation
 /usr/local/bin/unifi-osserver-ssl-import.sh --force
@@ -175,7 +175,7 @@ You can override the configuration using command line arguments:
 /usr/local/bin/unifi-osserver-ssl-import.sh --verbose
 
 # Combine multiple options
-/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=hetzner --verbose --force
+/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --server letsencrypt --dns=hetzner --verbose --force
 ```
 
 ### Available Options:
@@ -183,6 +183,7 @@ You can override the configuration using command line arguments:
 - `--dns=cloudflare|hetzner` – Specify DNS provider (for acme.sh only)
 - `--verbose` – Show detailed output of what the script is doing
 - `--force` – Force reimport of certificate even if it hasn't changed
+- --server letsencrypt - uses Letencrypt
 
 ---
 
