@@ -14,6 +14,7 @@ A script to automatically import and update SSL certificates for your UniFi OS s
   - `--verbose` for detailed logs and command output
   - `--provider=certbot|acme` to specify certificate provider
   - `--dns=cloudflare` to specify DNS provider (for acme.sh)
+  - `--server letsencrypt` to use Letsencrypt #7 (for acme.sh)
 - **Safety Features**: Creates backups of existing key and cert files before updating
 - **Comprehensive Logging**: Logs actions to `/var/log/unifi-ssl-import.log`
 - **Graceful Operation**: Clean stop/start of the UniFi controller
@@ -97,15 +98,16 @@ Replace `your.domain.com` with your actual domain:
 
 ##### Example 1: Cloudflare:
 ```bash
-acme.sh --issue --dns dns_cf -d your.domain.com --keylength 4096
+acme.sh --issue --server letsencrypt --dns dns_cf -d your.domain.com --keylength 4096
 ```
 
 ##### Example 2: Hetzner DNS:
 ```bash
-acme.sh --issue --dns dns_hetzner -d your.domain.com --keylength 4096
+acme.sh --issue --server letsencrypt --dns dns_hetzner -d your.domain.com --keylength 4096
 ```
 
 **Important**: UniFi OS Server only supports RSA certificates, so always use `--keylength 2048` (or higher RSA key lengths) with acme.sh. ECC certificates are not supported.
+**Important**: To get a fullchain.pem file we need to use letsencrypt instead of acme default - ZeroSSL `--server letsencrypt`.
 
 ---
 
@@ -163,11 +165,10 @@ You can override the configuration using command line arguments:
 /usr/local/bin/unifi-osserver-ssl-import.sh --provider=certbot
 
 # Use acme.sh with Hetzner DNS
-/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=hetzner --server letsencrypt
+/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --server letsencrypt --dns=hetzner
 
 # Use acme.sh with Cloudflare DNS
-/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=cloudflare --server letsencrypt
-
+/usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --server letsencrypt --dns=cloudflare
 # Force certificate reinstallation
 /usr/local/bin/unifi-osserver-ssl-import.sh --force
 
@@ -183,7 +184,7 @@ You can override the configuration using command line arguments:
 - `--dns=cloudflare|hetzner` – Specify DNS provider (for acme.sh only)
 - `--verbose` – Show detailed output of what the script is doing
 - `--force` – Force reimport of certificate even if it hasn't changed
-- --server letsencrypt - uses Letencrypt
+- `--server letsencrypt` - uses Letsencrypt instead of zerossl
 
 ---
 
@@ -216,7 +217,7 @@ acme.sh automatically installs its own cron job for renewal. You only need to ad
 
 ```cron
 # Check for certificate updates twice a day
-5 */12 * * * root /usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --dns=hetzner >> /home/import_log.txt 2>&1
+5 */12 * * * root /usr/local/bin/unifi-osserver-ssl-import.sh --provider=acme --server letsencrypt --dns=hetzner >> /home/import_log.txt 2>&1
 ```
 
 ### Provider-agnostic approach:
