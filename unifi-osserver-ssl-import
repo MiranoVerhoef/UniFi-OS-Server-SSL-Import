@@ -5,7 +5,7 @@
 #Domain Name:
 UNIFI_HOSTNAME="unifi.example.com"
 
-#Certificate Provider: "certbot" or "acme"
+#Certificate Provider: "certbot", "acme" or "custom"
 CERT_PROVIDER="certbot"
 
 #DNS Provider (for acme.sh): "cloudflare", "hetzner", etc.
