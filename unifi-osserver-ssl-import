@@ -19,7 +19,6 @@ CERTBOT_CONFIG_DIR="/etc/letsencrypt"
 CUSTOM_CERT_FILE="/root/custom-ssl/cert.pem"
 CUSTOM_CHAIN_FILE="/root/custom-ssl/chain.pem"
 CUSTOM_KEY_FILE="/root/custom-ssl/privkey.pem"
-CUSTOM_MD5_FILE="/root/custom-ssl/cert_bundle.md5"
 
 #Force Mode:
 FORCE=false
@@ -176,11 +175,7 @@ get_cert_files "$CERT_DIR"
 
 DEST_KEY="/home/uosserver/.local/share/containers/storage/volumes/uosserver_data/_data/unifi-core/config/unifi-core.key"
 DEST_CERT="/home/uosserver/.local/share/containers/storage/volumes/uosserver_data/_data/unifi-core/config/unifi-core.crt"
-if [[ "$CERT_PROVIDER" == "custom" ]]; then
-    COMBINED_MD5_FILE="$CUSTOM_MD5_FILE"
-else
-    COMBINED_MD5_FILE="${CERT_DIR}/cert_bundle.md5"
-fi
+COMBINED_MD5_FILE="${CERT_DIR}/cert_bundle.md5"
 
 echo "Checking required certificate files in ${CERT_DIR}..."
 if [[ ! -f "$KEY_FILE" ]]; then
@@ -202,24 +197,29 @@ fi
 echo "✅ All required files found."
 
 # Calculate checksum based on provider
-if [[ "$CERT_PROVIDER" == "certbot" || "$CERT_PROVIDER" == "custom" ]]; then
-    CURRENT_SUM=$(cat "$KEY_FILE" "$CERT_FILE" "$CHAIN_FILE" | md5sum | awk '{print $1}')
+if [[ "$CERT_PROVIDER" == "custom" ]]; then
+    echo "Custom certificate provider selected. Proceeding with update."
 else
-    CURRENT_SUM=$(cat "$KEY_FILE" "$CERT_FILE" | md5sum | awk '{print $1}')
-fi
-echo "Current cert bundle MD5: $CURRENT_SUM"
-
-if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
-    OLD_SUM=$(<"${COMBINED_MD5_FILE}")
-    echo "Previous cert bundle MD5: $OLD_SUM"
-
-    if [[ "$CURRENT_SUM" == "$OLD_SUM" ]]; then
-        echo "✅ Certificate unchanged. No update necessary."
-        exit 0
+    # Calculate checksum based on provider
+    if [[ "$CERT_PROVIDER" == "certbot" ]]; then
+        CURRENT_SUM=$(cat "$KEY_FILE" "$CERT_FILE" "$CHAIN_FILE" | md5sum | awk '{print $1}')
+    else
+        CURRENT_SUM=$(cat "$KEY_FILE" "$CERT_FILE" | md5sum | awk '{print $1}')
     fi
-fi
+    echo "Current cert bundle MD5: $CURRENT_SUM"
 
-echo "Certificate changed or --force used. Proceeding with update."
+    if [[ "$FORCE" == false && -f "${COMBINED_MD5_FILE}" ]]; then
+        OLD_SUM=$(<"${COMBINED_MD5_FILE}")
+        echo "Previous cert bundle MD5: $OLD_SUM"
+
+        if [[ "$CURRENT_SUM" == "$OLD_SUM" ]]; then
+            echo "✅ Certificate unchanged. No update necessary."
+            exit 0
+        fi
+    fi
+
+    echo "Certificate changed or --force used. Proceeding with update."
+fi
 
 # Stop UniFi controller (cleanly)
 echo -n "Stopping UniFi Controller... "
@@ -266,9 +266,11 @@ chown uosserver:uosserver "${DEST_KEY}" "${DEST_CERT}" 2>/dev/null || echo "chow
 echo "✅"
 
 # Save new checksum
-mkdir -p "$(dirname "$COMBINED_MD5_FILE")"
-echo "$CURRENT_SUM" > "${COMBINED_MD5_FILE}"
-echo "Updated cert checksum saved."
+if [[ "$CERT_PROVIDER" != "custom" ]]; then
+    mkdir -p "$(dirname "$COMBINED_MD5_FILE")"
+    echo "$CURRENT_SUM" > "${COMBINED_MD5_FILE}"
+    echo "Updated cert checksum saved."
+fi
 
 # Show cert details
 echo "Installed cert details:"
