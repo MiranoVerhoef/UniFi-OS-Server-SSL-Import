@@ -19,6 +19,8 @@ CERTBOT_CONFIG_DIR="/etc/letsencrypt"
 FORCE=false
 #Verbose Mode:
 VERBOSE=false
+#Logging Mode:
+LOGGING=true
 #Logfile location:
 LOGFILE="/var/log/unifi-os-server-ssl-import.log"
 ############################################################################################
@@ -30,21 +32,32 @@ for arg in "$@"; do
     case $arg in
         --force) FORCE=true ;;
         --verbose) VERBOSE=true ;;
+        --no-log) LOGGING=false ;;
         --provider=*) CERT_PROVIDER="${arg#*=}" ;;
         --dns=*) DNS_PROVIDER="${arg#*=}" ;;
         *)
             echo "Unknown argument: $arg"
-            echo "Usage: $0 [--force] [--verbose] [--provider=certbot|acme] [--dns=cloudflare|hetzner]"
+            echo "Usage: $0 [--force] [--verbose] [--no-log] [--provider=certbot|acme] [--dns=cloudflare|hetzner]"
             exit 1
             ;;
     esac
 done
 
 # Logging control
-if [[ "$VERBOSE" == false ]]; then
-    exec > >(tee -a "$LOGFILE") 2>&1
+if [[ "$LOGGING" == true ]]; then
+    if [[ "$VERBOSE" == true ]]; then
+        # Verbose + logging: output to terminal AND log file
+        exec > >(tee -a "$LOGFILE") 2>&1
+        echo "Verbose mode enabled. Logging to $LOGFILE"
+    else
+        # Normal logging: output to terminal AND log file
+        exec > >(tee -a "$LOGFILE") 2>&1
+    fi
 else
-    echo "Verbose mode enabled."
+    # Logging disabled: output to terminal only
+    if [[ "$VERBOSE" == true ]]; then
+        echo "Verbose mode enabled. Logging is disabled."
+    fi
 fi
 
 # Function to run commands cleanly
@@ -140,6 +153,7 @@ echo " Provider: $CERT_PROVIDER"
 if [[ "$CERT_PROVIDER" == "acme" ]]; then
     echo " DNS Provider: $DNS_PROVIDER"
 fi
+echo " Logging: $LOGGING"
 echo "=============================="
 
 if [[ "$FORCE" == true ]]; then
