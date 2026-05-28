@@ -243,10 +243,5 @@ You can also set the provider in the script configuration and use:
 ## Contributor
 
 [Martin Seener](https://github.com/martinseener)
-
-## Contributor
 [Jammin84](https://github.com/jammin84)
-
-## Contributor
-
 [Cookie Monster Coder](https://github.com/Cookie-Monster-Coder)
