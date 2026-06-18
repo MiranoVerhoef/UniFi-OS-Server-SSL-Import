@@ -1,10 +1,13 @@
-# UniFi OS Server SSL Import Script
+# No further development is planned, as newer versions already support LE automatically.
+
+
+## UniFi OS Server SSL Import Script
 
 A script to automatically import and update SSL certificates for your UniFi OS server (`uosserver`) from multiple certificate providers. The script supports both **Let's Encrypt via Certbot** and **acme.sh**, with DNS challenge support for all out-of-the-box DNS providers. The script stops the UniFi controller, replaces its TLS key and certificate files with the latest certs, sets correct permissions, and then restarts the controller — ensuring your UniFi server always has a valid SSL certificate.
 
 ---
 
-## Features
+### Features
 
 - **Multiple Certificate Providers**: Support for both Certbot and acme.sh
 - **DNS Challenge Support**: Works with Cloudflare and all supported acme.sh DNS providers
@@ -21,13 +24,13 @@ A script to automatically import and update SSL certificates for your UniFi OS s
 
 ---
 
-## Prerequisites
+### Prerequisites
 
 Choose one of the following certificate providers:
 
-### Option 1: Certbot with Let's Encrypt
+#### Option 1: Certbot with Let's Encrypt
 
-#### Install Certbot and DNS plugins
+##### Install Certbot and DNS plugins
 
 Make sure you run with root privileges:
 
@@ -38,7 +41,7 @@ apt install letsencrypt -y
 apt install python3-certbot-dns-cloudflare -y
 ```
 
-#### Create a Cloudflare credentials file
+##### Create a Cloudflare credentials file
 
 ```bash
 mkdir -p /root/.secrets/
@@ -60,7 +63,7 @@ chmod 0700 /root/.secrets/
 chmod 0400 /root/.secrets/cloudflare.ini
 ```
 
-#### Request a certificate with Certbot
+##### Request a certificate with Certbot
 
 Replace `your.domain.com` with your actual domain:
 
@@ -68,40 +71,40 @@ Replace `your.domain.com` with your actual domain:
 certbot certonly --key-type rsa --rsa-key-size 4096 --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.ini -d your.domain.com --preferred-challenges dns-01
 ```
 
-### Option 2: acme.sh with DNS Challenge
+#### Option 2: acme.sh with DNS Challenge
 
-#### Install acme.sh
+##### Install acme.sh
 
 ```bash
 curl https://get.acme.sh | sh -s email=my@example.com
 source ~/.bashrc
 ```
 
-#### Configure DNS Provider
+##### Configure DNS Provider
 
-##### Example 1: Cloudflare:
+###### Example 1: Cloudflare:
 
 ```bash
 export CF_Token="your_cloudflare_api_token"
 export CF_Account_ID="your_account_id"
 ```
 
-##### Example 2: Hetzner DNS:
+###### Example 2: Hetzner DNS:
 
 ```bash
 export HETZNER_Token="your_hetzner_dns_api_token"
 ```
 
-#### Request a certificate with acme.sh
+##### Request a certificate with acme.sh
 
 Replace `your.domain.com` with your actual domain:
 
-##### Example 1: Cloudflare:
+###### Example 1: Cloudflare:
 ```bash
 acme.sh --issue --server letsencrypt --dns dns_cf -d your.domain.com --keylength 4096
 ```
 
-##### Example 2: Hetzner DNS:
+###### Example 2: Hetzner DNS:
 ```bash
 acme.sh --issue --server letsencrypt --dns dns_hetzner -d your.domain.com --keylength 4096
 ```
@@ -146,9 +149,9 @@ DNS_PROVIDER="cloudflare"
 
 ---
 
-## Running the Script
+### Running the Script
 
-### Basic Usage
+#### Basic Usage
 
 Run the script manually (uses configuration from script file):
 
@@ -156,7 +159,7 @@ Run the script manually (uses configuration from script file):
 /usr/local/bin/unifi-osserver-ssl-import.sh
 ```
 
-### Command Line Options
+#### Command Line Options
 
 You can override the configuration using command line arguments:
 
