@@ -1,7 +1,8 @@
-# No further development is planned, as newer versions already support LE automatically.
+# UniFi OS Server SSL Import Script 
 
 
-## UniFi OS Server SSL Import Script
+
+## No further development is planned, as newer versions already support LE automatically.
 
 A script to automatically import and update SSL certificates for your UniFi OS server (`uosserver`) from multiple certificate providers. The script supports both **Let's Encrypt via Certbot** and **acme.sh**, with DNS challenge support for all out-of-the-box DNS providers. The script stops the UniFi controller, replaces its TLS key and certificate files with the latest certs, sets correct permissions, and then restarts the controller — ensuring your UniFi server always has a valid SSL certificate.
 
