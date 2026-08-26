@@ -7,6 +7,7 @@ A script to automatically import and update SSL certificates for your UniFi OS s
 ### Features
 
 - **Multiple Certificate Providers**: Support for both Certbot and acme.sh
+- **acme.sh RSA and ECC Support**: Automatically detects standard RSA and `_ecc` certificate directories
 - **DNS Challenge Support**: Works with Cloudflare and all supported acme.sh DNS providers
 - **Smart Updates**: Automatically detects if the certificate changed and updates only if needed
 - **Command Line Options**: 
@@ -94,20 +95,31 @@ export HETZNER_Token="your_hetzner_dns_api_token"
 
 ##### Request a certificate with acme.sh
 
-Replace `your.domain.com` with your actual domain:
+Replace `your.domain.com` with your actual domain. Both RSA and ECC certificates are supported by the import script.
 
-###### Example 1: Cloudflare:
+###### RSA with Cloudflare:
 ```bash
 acme.sh --issue --server letsencrypt --dns dns_cf -d your.domain.com --keylength 4096
 ```
 
-###### Example 2: Hetzner DNS:
+###### ECC with Cloudflare:
+```bash
+acme.sh --issue --server letsencrypt --dns dns_cf -d your.domain.com --keylength ec-256
+```
+
+###### RSA with Hetzner DNS:
 ```bash
 acme.sh --issue --server letsencrypt --dns dns_hetzner -d your.domain.com --keylength 4096
 ```
 
-**Important**: UniFi OS Server only supports RSA certificates, so always use `--keylength 2048` (or higher RSA key lengths) with acme.sh. ECC certificates are not supported.
-**Important**: To get a fullchain.pem file we need to use letsencrypt instead of acme default - ZeroSSL `--server letsencrypt`.
+###### ECC with Hetzner DNS:
+```bash
+acme.sh --issue --server letsencrypt --dns dns_hetzner -d your.domain.com --keylength ec-256
+```
+
+acme.sh stores RSA certificates in `${ACME_HOME}/your.domain.com` and ECC certificates in `${ACME_HOME}/your.domain.com_ecc`. If both are present, the import script prefers the RSA certificate directory and falls back to ECC when no RSA directory exists.
+
+**Important**: To get a full certificate chain we use Let's Encrypt instead of the acme.sh default ZeroSSL server by specifying `--server letsencrypt` when issuing the certificate.
 
 ---
 
@@ -245,3 +257,4 @@ You can also set the provider in the script configuration and use:
 [Martin Seener](https://github.com/martinseener)
 [Jammin84](https://github.com/jammin84)
 [Cookie Monster Coder](https://github.com/Cookie-Monster-Coder)
+[Daniel Hauptmann](https://github.com/daniel-hauptmann)
