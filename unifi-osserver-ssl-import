@@ -76,15 +76,20 @@ get_cert_dir() {
             echo "${CERTBOT_CONFIG_DIR}/live/${UNIFI_HOSTNAME}"
             ;;
         "acme")
-            # acme.sh with RSA certificates (UniFi OS Server only supports RSA)
+            # acme.sh uses separate directories for RSA and ECC certificates
             local rsa_dir="${ACME_HOME}/${UNIFI_HOSTNAME}"
-            
+            local ecc_dir="${ACME_HOME}/${UNIFI_HOSTNAME}_ecc"
+
+            # Prefer RSA when both certificate types are present
             if [[ -d "$rsa_dir" ]]; then
                 echo "$rsa_dir"
+            elif [[ -d "$ecc_dir" ]]; then
+                echo "$ecc_dir"
             else
                 echo "❌ No acme.sh certificate directory found for ${UNIFI_HOSTNAME}" >&2
-                echo "   Expected directory: $rsa_dir" >&2
-                echo "   Make sure to use RSA certificates with acme.sh (e.g., --keylength 4096)" >&2
+                echo "   Checked directories:" >&2
+                echo "   - $rsa_dir" >&2
+                echo "   - $ecc_dir" >&2
                 exit 1
             fi
             ;;
@@ -107,7 +112,7 @@ get_cert_files() {
         "acme")
             CERT_FILE="${cert_dir}/fullchain.cer"
             CHAIN_FILE="${cert_dir}/ca.cer"
-            
+
             # Check for different key file naming patterns in acme.sh
             if [[ -f "${cert_dir}/${UNIFI_HOSTNAME}.key" ]]; then
                 KEY_FILE="${cert_dir}/${UNIFI_HOSTNAME}.key"
