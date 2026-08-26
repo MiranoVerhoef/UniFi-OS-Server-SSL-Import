@@ -1,0 +1,48 @@
+name: Update Release Asset
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - unifi-osserver-ssl-import
+      - .github/workflows/update-release-asset.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare release asset
+        run: cp unifi-osserver-ssl-import unifi-osserver-ssl-import.txt
+
+      - name: Check existing Release asset
+        id: compare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/release-asset
+          if gh release download Release --pattern unifi-osserver-ssl-import.txt --dir /tmp/release-asset 2>/dev/null; then
+            if cmp -s unifi-osserver-ssl-import.txt /tmp/release-asset/unifi-osserver-ssl-import.txt; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "Release asset is already up to date."
+            else
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              echo "Release asset differs from main."
+            fi
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Release asset is missing."
+          fi
+
+      - name: Update Release asset
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload Release unifi-osserver-ssl-import.txt --clobber
