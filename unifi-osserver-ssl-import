@@ -212,7 +212,7 @@ echo "Certificate changed or --force used. Proceeding with update."
 
 # Stop UniFi controller (cleanly)
 echo -n "Stopping UniFi Controller... "
-run_command uosserver stop
+run_command systemctl stop uosserver
 echo "done."
 
 # Backup existing files
@@ -264,7 +264,7 @@ openssl x509 -in "${DEST_CERT}" -noout -subject -issuer -serial -enddate
 
 # Restart controller
 echo -n "Starting UniFi Controller... "
-run_command uosserver start
+run_command systemctl start uosserver
 echo "done."
 
 echo "✅ Done! SSL cert installed and controller restarted."
